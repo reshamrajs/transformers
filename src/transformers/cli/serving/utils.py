@@ -84,6 +84,10 @@ class _StreamError:
     def __init__(self, msg: str):
         self.msg = msg
 
+    def to_sse(self) -> str:
+        """Format the error as a server-sent event, JSON-escaping the message."""
+        return f"data: {json.dumps({'error': self.msg})}\n\n"
+
 
 class _GenerationCancelled(Exception):
     """Raised inside ``DirectStreamer.put()`` to abort ``model.generate()``."""

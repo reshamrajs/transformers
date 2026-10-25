@@ -224,7 +224,7 @@ class ChatCompletionHandler(BaseHandler):
                             done = True
                             break
                         if isinstance(item, _StreamError):
-                            sse_parts.append(f'data: {{"error": "{item.msg}"}}\n\n')
+                            sse_parts.append(item.to_sse())
                             yield "".join(sse_parts)
                             return
                         if isinstance(item, ToolCall):

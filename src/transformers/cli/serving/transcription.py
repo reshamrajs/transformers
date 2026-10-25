@@ -185,7 +185,7 @@ class TranscriptionHandler:
                 if text is None:
                     break
                 if isinstance(text, _StreamError):
-                    yield f'data: {{"error": "{text.msg}"}}\n\n'
+                    yield text.to_sse()
                     return
                 yield f"data: {text}\n\n"
 
