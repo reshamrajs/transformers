@@ -454,6 +454,20 @@ class TestBuildGenerationConfig(unittest.TestCase):
         result = self._make_handler()._build_generation_config({"max_tokens": 50}, GenerationConfig(max_new_tokens=20))
         self.assertEqual(result.max_new_tokens, 50)
 
+    def test_max_completion_tokens(self):
+        from transformers import GenerationConfig
+
+        result = self._make_handler()._build_generation_config({"max_completion_tokens": 20}, GenerationConfig())
+        self.assertEqual(result.max_new_tokens, 20)
+
+    def test_max_completion_tokens_takes_precedence_over_max_tokens(self):
+        from transformers import GenerationConfig
+
+        result = self._make_handler()._build_generation_config(
+            {"max_completion_tokens": 20, "max_tokens": 50}, GenerationConfig()
+        )
+        self.assertEqual(result.max_new_tokens, 20)
+
 
 @require_serve
 class TestValidation(unittest.TestCase):
