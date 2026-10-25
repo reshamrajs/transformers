@@ -4385,8 +4385,10 @@ def _speculative_sampling(
     # When probability_ratio > 1 (i.e. q_i(x) < p_i(x), or "assistant probability of the candidate token is smaller
     # than the model probability for the same token"), keep the token. Otherwise reject with p = 1 - probability_ratio
     # (= keep with p = probability_ratio). Keep all the tokens until the first rejection
+    # `r_i` is drawn from [0, 1), so `P(r_i < ratio) = ratio`. A strict comparison also guarantees that a candidate
+    # with zero target probability is rejected even when the draw is exactly zero
     r_i = torch.rand_like(probability_ratio)
-    is_accepted = r_i <= probability_ratio
+    is_accepted = r_i < probability_ratio
     n_matches = ((~is_accepted).cumsum(dim=-1) < 1).sum()  # this is `n` in algorithm 1
 
     # Next token selection: if there is a rejection, adjust the distribution from the main model before sampling.

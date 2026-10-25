@@ -3229,6 +3229,25 @@ class UtilsFunctionsTest(unittest.TestCase):
         self.assertEqual(n_standard.item(), 0)
         self.assertEqual(n_ensemble.item(), 1)
 
+    def test_speculative_sampling_rejects_zero_probability_candidate_on_zero_draw(self):
+        """A candidate the target model assigns zero probability must be rejected, even when the draw is 0."""
+        candidate_input_ids = torch.tensor([[1, 0]])
+        # Draft puts all its mass on token 0, the target puts none there
+        candidate_logits = torch.tensor([[[0.0, -float("inf")]]])
+        new_logits = torch.tensor([[[-float("inf"), 0.0], [-float("inf"), 0.0]]])
+
+        with patch("transformers.generation.utils.torch.rand_like", side_effect=torch.zeros_like):
+            validated_tokens, n_matches = _speculative_sampling(
+                candidate_input_ids,
+                candidate_logits,
+                1,
+                new_logits,
+                assistant_ensemble_weight=None,
+            )
+
+        self.assertEqual(n_matches.item(), 0)
+        self.assertEqual(validated_tokens.tolist(), [[1]])
+
     def test_speculative_sampling_ensemble_fallback_distribution_finite_and_normalized(self):
         """The fallback distribution under ensemble weighting must be finite, normalized, and match the
         standard SD fallback `[p-q]_+/sum([p-q]_+)` (the ensemble residual normalises to the same distribution)."""
