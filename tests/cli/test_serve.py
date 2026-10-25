@@ -39,6 +39,7 @@ from transformers.cli.serving.utils import (
     GenerationState,
     Modality,
     ToolCall,
+    _StreamError,
     get_response_template,
     parse_assistant_message,
     response_events_to_chunks,
@@ -584,6 +585,13 @@ class TestChunkSSE(unittest.TestCase):
     def test_chunk_to_sse_wraps_plain_string(self):
         result = BaseHandler.chunk_to_sse("hello")
         self.assertEqual(result, "data: hello\n\n")
+
+    def test_stream_error_sse_is_valid_json(self):
+        msg = 'The following `model_kwargs` are not used: ["foo"]\nC:\\path "quoted"'
+        sse = _StreamError(msg).to_sse()
+        self.assertTrue(sse.startswith("data: "))
+        self.assertTrue(sse.endswith("\n\n"))
+        self.assertEqual(json.loads(sse[len("data: ") :].strip()), {"error": msg})
 
 
 @require_serve
